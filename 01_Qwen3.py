@@ -1,3 +1,5 @@
+import time
+
 import torch
 import torch.nn as nn
 from pathlib import Path
@@ -690,20 +692,30 @@ def test_load_qwen3_safetensors(
 
     return model
 
+def get_device():
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
 def main():
     """
     测试Qwen3模型的生成流程。
     注意：这里只初始化了模型结构，没有加载预训练权重，所以输出不代表真实Qwen3效果。
     """
-    import torch
+    device = get_device()
+    print(f"using device: {device}")
     tokenizer = Qwen3Tokenizer(tokenizer_file_path=r"model/Qwen3-0.6B/tokenizer.json")
     model = Qwen3Model(QWEN_CONFIG_06_B)
     model.eval()
-    model.to("cuda")
-    input_ids = torch.tensor(tokenizer.encode("你好，今天天气真好啊")).unsqueeze(0).to("cuda")
-    output = generate_text(input_ids,model,tokenizer)
+    model.to(device)
+    input_ids = torch.tensor(tokenizer.encode("你好，今天天气真好啊")).unsqueeze(0).to(device)
+    output = generate_text(input_ids, model, tokenizer)
     
     print(output)
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    end_time = time.time()
+    print(f"用时{end_time-start_time}/s")
