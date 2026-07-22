@@ -716,12 +716,7 @@ def test_load_qwen3_safetensors(
 
     return model
 
-def get_device():
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    if torch.backends.mps.is_available():
-        return torch.device("mps")
-    return torch.device("cpu")
+from device_utils import get_device  # cuda > mps > cpu
 def main():
     """
     测试Qwen3模型的生成流程。

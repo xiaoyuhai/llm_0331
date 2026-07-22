@@ -1,3 +1,4 @@
+from device_utils import DeviceHelper, get_device
 from transformers import AutoTokenizer
 tokenizer = AutoTokenizer.from_pretrained("model/Qwen3-0.6B-Base")
 
@@ -22,7 +23,7 @@ class SFTConfig:
 def get_train_data(sft_config:SFTConfig):
 
     from datasets import load_dataset
-    train_data = load_dataset("./data/ultrachat_200k")["train_sft"]
+    train_data = load_dataset("data/ultrachat_200k")["train_sft"]
     train_data = train_data.shuffle()
     train_data = train_data.select(range(sft_config.train_data_size))
     final_result = []
@@ -36,7 +37,7 @@ def get_train_data(sft_config:SFTConfig):
 def get_eval_data(sft_config:SFTConfig):
 
     from datasets import load_dataset
-    eval_data = load_dataset("./data/ultrachat_200k")["test_sft"]
+    eval_data = load_dataset("data/ultrachat_200k")["test_sft"]
     eval_data = eval_data.shuffle()
     eval_data = eval_data.select(range(sft_config.eval_data_size))
     final_result = []
@@ -204,6 +205,8 @@ def cosine_decay(current_batch,total_batch,warmup_ratio,lr):
 
 def eval_model(model,sft_config:SFTConfig):
 
+    device = next(model.parameters()).device
+
     model.eval()
 
     eval_data = get_eval_data(sft_config)
@@ -220,7 +223,7 @@ def eval_model(model,sft_config:SFTConfig):
             padding_length = max_length - len(sample)
             sample.extend([tokenizer.pad_token_id] * padding_length)
         
-        data_tensor = torch.tensor(current_batch_data, dtype=torch.long).to("cuda")
+        data_tensor = torch.tensor(current_batch_data, dtype=torch.long).to(device)
         # input_ids:
         input_ids = data_tensor[:,:-1]
         labels = data_tensor[:,1:]
@@ -256,7 +259,9 @@ def train(sft_config:SFTConfig):
     from transformers import AutoModelForCausalLM
     from torch.optim.adamw import AdamW # 对于大模型微调，一般使用AdamW
     model = AutoModelForCausalLM.from_pretrained("model/Qwen3-0.6B-Base/")
-    model.to("cuda")
+    device = get_device()
+    print(f"using device: {device}")
+    model.to(device)
     model.train()
     optimizer = AdamW(model.parameters(), lr=sft_config.lr)
     loss_list = []
@@ -280,7 +285,7 @@ def train(sft_config:SFTConfig):
             padding_length = max_length - len(sample)
             sample.extend([tokenizer.pad_token_id] * padding_length)
         
-        data_tensor = torch.tensor(current_batch_data, dtype=torch.long).to("cuda")
+        data_tensor = torch.tensor(current_batch_data, dtype=torch.long).to(device)
         # input_ids:
         input_ids = data_tensor[:,:-1]
         labels = data_tensor[:,1:]

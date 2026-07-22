@@ -1,3 +1,4 @@
+from device_utils import get_device
 """
 自回归生成的脚本：
 支持：
@@ -26,7 +27,9 @@ model = AutoModelForCausalLM.from_pretrained(model_path,device_map = "auto")
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 
 message_list = [{"role":"user","content":prompt}]
-input_tensor : Tensor= tokenizer.apply_chat_template(message_list, tokenize=True, add_generation_prompt=True,return_tensors = "pt")["input_ids"].to("cuda")
+device = get_device()
+print(f"using device: {device}")
+input_tensor : Tensor= tokenizer.apply_chat_template(message_list, tokenize=True, add_generation_prompt=True,return_tensors = "pt")["input_ids"].to(device)
 
 # result.shape: batch_size,num_tokens(包含输入的input_ids和新生成的token_ids)
 result: Tensor= model.generate(input_tensor,max_new_tokens = 500)

@@ -1,3 +1,4 @@
+from device_utils import get_device
 from transformers import AutoTokenizer
 tokenizer = AutoTokenizer.from_pretrained("model/Qwen3-0.6B-Base")
 
@@ -255,7 +256,7 @@ def eval_model(model,ref_model,dpo_config:DPOConfig):
             padding_length = max_chosen_length - len(sample)
             sample.extend([tokenizer.pad_token_id] * padding_length)
         
-        chosen_data_tensor = torch.tensor(current_chosen_batch_data, dtype=torch.long).to("cuda")
+        chosen_data_tensor = torch.tensor(current_chosen_batch_data, dtype=torch.long).to(device)
         # input_ids:
         chosen_input_ids = chosen_data_tensor[:,:-1]
         chosen_labels = chosen_data_tensor[:,1:]
@@ -280,7 +281,7 @@ def eval_model(model,ref_model,dpo_config:DPOConfig):
             padding_length = max_rejected_length - len(sample)
             sample.extend([tokenizer.pad_token_id] * padding_length)
         
-        rejected_data_tensor = torch.tensor(current_rejected_batch_data, dtype=torch.long).to("cuda")
+        rejected_data_tensor = torch.tensor(current_rejected_batch_data, dtype=torch.long).to(device)
         # input_ids:
         rejected_input_ids = rejected_data_tensor[:,:-1]
         rejected_labels = rejected_data_tensor[:,1:]
@@ -366,10 +367,12 @@ def train(dpo_config:DPOConfig):
     # 初始化模型
     from transformers import AutoModelForCausalLM
     from torch.optim.adamw import AdamW # 对于大模型微调，一般使用AdamW
+    device = get_device()
+    print(f"using device: {device}")
     model = AutoModelForCausalLM.from_pretrained("finetuned/02_sft_demo_backup")
     ref_model = AutoModelForCausalLM.from_pretrained("finetuned/02_sft_demo_backup")
-    model.to("cuda")
-    ref_model.to("cuda")
+    model.to(device)
+    ref_model.to(device)
     model.train()
     ref_model.eval()
     optimizer = AdamW(model.parameters(), lr=dpo_config.lr)
@@ -394,7 +397,7 @@ def train(dpo_config:DPOConfig):
             padding_length = max_chosen_length - len(sample)
             sample.extend([tokenizer.pad_token_id] * padding_length)
         
-        chosen_data_tensor = torch.tensor(current_chosen_batch_data, dtype=torch.long).to("cuda")
+        chosen_data_tensor = torch.tensor(current_chosen_batch_data, dtype=torch.long).to(device)
         # input_ids:
         chosen_input_ids = chosen_data_tensor[:,:-1]
         chosen_labels = chosen_data_tensor[:,1:]
@@ -419,7 +422,7 @@ def train(dpo_config:DPOConfig):
             padding_length = max_rejected_length - len(sample)
             sample.extend([tokenizer.pad_token_id] * padding_length)
         
-        rejected_data_tensor = torch.tensor(current_rejected_batch_data, dtype=torch.long).to("cuda")
+        rejected_data_tensor = torch.tensor(current_rejected_batch_data, dtype=torch.long).to(device)
         # input_ids:
         rejected_input_ids = rejected_data_tensor[:,:-1]
         rejected_labels = rejected_data_tensor[:,1:]
