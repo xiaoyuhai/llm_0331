@@ -724,7 +724,7 @@ def main():
     """
     device = get_device()
     print(f"using device: {device}")
-    tokenizer = Qwen3Tokenizer(tokenizer_file_path=r"model/Qwen3-0.6B/tokenizer.json")
+    tokenizer = Qwen3Tokenizer(tokenizer_file_path=str(Path("model") / "Qwen3-0.6B" / "tokenizer.json"))
     model = Qwen3Model(QWEN_CONFIG_06_B)
     model.eval()
     model.to(device)

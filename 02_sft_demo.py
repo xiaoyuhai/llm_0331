@@ -1,6 +1,7 @@
 from device_utils import DeviceHelper, get_device
 from transformers import AutoTokenizer
-tokenizer = AutoTokenizer.from_pretrained("model/Qwen3-0.6B-Base")
+from llm_config import ModelConfig
+tokenizer = AutoTokenizer.from_pretrained(ModelConfig.REMOTE_MODEL_NAME_BASE)
 
 
 from dataclasses import dataclass
@@ -23,7 +24,7 @@ class SFTConfig:
 def get_train_data(sft_config:SFTConfig):
 
     from datasets import load_dataset
-    train_data = load_dataset("data/ultrachat_200k")["train_sft"]
+    train_data = load_dataset(ModelConfig.REMOTE_DATASET_NAME)["train_sft"]
     train_data = train_data.shuffle()
     train_data = train_data.select(range(sft_config.train_data_size))
     final_result = []
@@ -37,7 +38,7 @@ def get_train_data(sft_config:SFTConfig):
 def get_eval_data(sft_config:SFTConfig):
 
     from datasets import load_dataset
-    eval_data = load_dataset("data/ultrachat_200k")["test_sft"]
+    eval_data = load_dataset(ModelConfig.REMOTE_DATASET_NAME)["test_sft"]
     eval_data = eval_data.shuffle()
     eval_data = eval_data.select(range(sft_config.eval_data_size))
     final_result = []
@@ -258,7 +259,7 @@ def train(sft_config:SFTConfig):
     # 初始化模型
     from transformers import AutoModelForCausalLM
     from torch.optim.adamw import AdamW # 对于大模型微调，一般使用AdamW
-    model = AutoModelForCausalLM.from_pretrained("model/Qwen3-0.6B-Base/")
+    model = AutoModelForCausalLM.from_pretrained(ModelConfig.REMOTE_MODEL_NAME_BASE)
     device = get_device()
     print(f"using device: {device}")
     model.to(device)

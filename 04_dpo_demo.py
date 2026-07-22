@@ -1,6 +1,7 @@
 from device_utils import get_device
 from transformers import AutoTokenizer
-tokenizer = AutoTokenizer.from_pretrained("model/Qwen3-0.6B-Base")
+from llm_config import ModelConfig
+tokenizer = AutoTokenizer.from_pretrained(ModelConfig.REMOTE_MODEL_NAME_BASE)
 
 
 from dataclasses import dataclass
