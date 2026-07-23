@@ -20,6 +20,8 @@ class SFTConfig:
 
     log_iter: int = 100
 
+    max_len = 2056
+
 
 def get_train_data(sft_config:SFTConfig):
 
@@ -30,7 +32,7 @@ def get_train_data(sft_config:SFTConfig):
     final_result = []
     for i in range(sft_config.train_data_size):
         message_list = train_data[i]["messages"]
-        result:list = tokenizer.apply_chat_template(message_list,tokenize=True)["input_ids"]
+        result:list = tokenizer.apply_chat_template(message_list,tokenize=True,truncation=True,max_length=sft_config.max_len)["input_ids"]
         final_result.append(result)
 
     return final_result
@@ -44,7 +46,7 @@ def get_eval_data(sft_config:SFTConfig):
     final_result = []
     for i in range(sft_config.eval_data_size):
         message_list = eval_data[i]["messages"]
-        result:list = tokenizer.apply_chat_template(message_list,tokenize=True)["input_ids"]
+        result:list = tokenizer.apply_chat_template(message_list,tokenize=True,truncation=True,max_length=sft_config.max_len)["input_ids"]
         final_result.append(result)
 
     return final_result
@@ -176,7 +178,10 @@ def compute_loss(logits,labels,assistant_mask):
 
     # 5、对负对数概率相加，取平均
     # shape: 普通的标量
-    average_loss = masked_negative_label_token_log_prob.sum() / assistant_mask.sum()
+    num_active = assistant_mask.sum()
+    if num_active == 0:
+        return torch.tensor(0.0, device=logits.device)
+    average_loss = masked_negative_label_token_log_prob.sum() / num_active
 
     return average_loss
 
@@ -259,12 +264,27 @@ def train(sft_config:SFTConfig):
     # 初始化模型
     from transformers import AutoModelForCausalLM
     from torch.optim.adamw import AdamW # 对于大模型微调，一般使用AdamW
-    model = AutoModelForCausalLM.from_pretrained(ModelConfig.REMOTE_MODEL_NAME_BASE)
+    model = AutoModelForCausalLM.from_pretrained(ModelConfig.REMOTE_MODEL_NAME_BASE,torch_dtype=torch.bfloat16)
+
+    # 优化器，lora
+    from peft import LoraConfig, get_peft_model
+    lora_cfg = LoraConfig(r=8, lora_alpha=16,
+                          target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+                          lora_dropout=0.05, bias="none", task_type="CAUSAL_LM")
+    model = get_peft_model(model, lora_cfg)
+
+    model.gradient_checkpointing_enable() #
+    model.enable_input_require_grads()  # 配合冻结 embedding 时用
+
     device = get_device()
     print(f"using device: {device}")
     model.to(device)
     model.train()
-    optimizer = AdamW(model.parameters(), lr=sft_config.lr)
+    #optimizer = AdamW(model.parameters(), lr=sft_config.lr)
+
+    # 优化器换成8bit
+    from bitsandbytes.optim import AdamW8bit
+    optimizer = AdamW8bit(model.parameters(), lr=sft_config.lr)
     loss_list = []
     
     
@@ -317,7 +337,7 @@ def train(sft_config:SFTConfig):
         optimizer.zero_grad()
 
 
-        should_eval = current_batch % sft_config.eval_iter == 0 
+        should_eval = current_batch > 0 and current_batch % sft_config.eval_iter == 0
         should_log = current_batch % sft_config.log_iter  == 0
         if should_eval:
             average_loss = eval_model(model,sft_config)
