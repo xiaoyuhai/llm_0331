@@ -1,0 +1,15 @@
+/finetuned/02_sft_demo/adapter_config.json
+/finetuned/02_sft_demo/adapter_model.safetensors
+/finetuned/02_sft_demo/chat_template.jinja
+/finetuned/02_sft_demo/README.md
+/finetuned/02_sft_demo/tokenizer.json
+/finetuned/02_sft_demo/tokenizer_config.json
+/logs/02_sft_demo/events.out.tfevents.1784724267.YUHAIFENG.21288.0
+/logs/02_sft_demo/events.out.tfevents.1784725651.YUHAIFENG.25440.0
+/logs/02_sft_demo/events.out.tfevents.1784726178.YUHAIFENG.16456.0
+/logs/02_sft_demo/events.out.tfevents.1784773235.YUHAIFENG.25468.0
+/logs/02_sft_demo/events.out.tfevents.1784773854.YUHAIFENG.21540.0
+/logs/02_sft_demo/events.out.tfevents.1784774082.YUHAIFENG.400.0
+/logs/02_sft_demo/events.out.tfevents.1784775248.YUHAIFENG.4504.0
+/logs/02_sft_demo/events.out.tfevents.1784776030.YUHAIFENG.18044.0
+/logs/02_sft_demo/events.out.tfevents.1784776151.YUHAIFENG.26700.0
