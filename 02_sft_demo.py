@@ -282,11 +282,11 @@ def train(sft_config:SFTConfig):
     print(f"using device: {device}")
     model.to(device)
     model.train()
-    #optimizer = AdamW(model.parameters(), lr=sft_config.lr)
+    optimizer = AdamW(model.parameters(), lr=sft_config.lr)
 
     # 优化器换成8bit
-    from bitsandbytes.optim import AdamW8bit
-    optimizer = AdamW8bit(model.parameters(), lr=sft_config.lr)
+    # from bitsandbytes.optim import AdamW8bit
+    # optimizer = AdamW8bit(model.parameters(), lr=sft_config.lr)
     loss_list = []
     
     
