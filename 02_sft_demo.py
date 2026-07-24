@@ -1,5 +1,7 @@
 from device_utils import DeviceHelper, get_device
 from transformers import AutoTokenizer
+tokenizer = AutoTokenizer.from_pretrained("model/Qwen3-0.6B-Base")
+from transformers.models.deepseek_v3 import DeepseekV3ForCausalLM
 from llm_config import ModelConfig
 tokenizer = AutoTokenizer.from_pretrained(ModelConfig.REMOTE_MODEL_NAME_BASE)
 
