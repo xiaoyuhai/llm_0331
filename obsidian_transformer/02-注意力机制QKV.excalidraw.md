@@ -1,0 +1,68 @@
+---
+
+excalidraw-plugin: parsed
+tags: [excalidraw]
+
+---
+==⚠  Switch to EXCALIDRAW VIEW in the MORE OPTIONS menu of this document. ⚠== You can decompress Drawing data with the command palette: 'Decompress current Excalidraw file'. For more info check in plugin settings under 'Saving'
+
+
+# Excalidraw Data
+
+## Text Elements
+Scaled Dot-Product Attention (QKV 机制)
+输入序列 X
+W_Q 投影
+W_K 投影
+W_V 投影
+Query (Q)
+Key (K)
+Value (V)
+① Q × Kᵀ  (相似度矩阵)
+② 缩放 ÷ √dₖ
+③ Mask (可选)
+④ Softmax → 注意力权重
+⑤ 权重 × V → 上下文表示
+输出: 融合上下文的新表示
+核心公式:
+
+Attention(Q,K,V)
+= softmax(QKᵀ/√dₖ)·V
+%%
+## Drawing
+```compressed-json
+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
+X84n5wODLJ6IqKN5P/LKyn+PtzzJ
+```
+%%
